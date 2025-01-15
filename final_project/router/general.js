@@ -1,4 +1,5 @@
 const express = require('express');
+const axios = require('axios'); // Import Axios
 let books = require("./booksdb.js"); // Import the books database
 let isValid = require("./auth_users.js").isValid;
 let users = require("./auth_users.js").users;
@@ -86,6 +87,51 @@ public_users.get('/review/:isbn', function (req, res) {
     } else {
         // If the book is not found, return a 404 error
         return res.status(404).json({ message: "Book not found" });
+    }
+});
+
+// Define a helper function to simulate fetching books from an external API
+const fetchBooks = () => {
+    return new Promise((resolve, reject) => {
+        try {
+            // Simulate a network call delay with a resolved Promise
+            resolve(books);
+        } catch (error) {
+            reject("Error fetching book data");
+        }
+    });
+};
+
+// Using Promise Callbacks
+public_users.get('/books-promise', (req, res) => {
+    fetchBooks()
+        .then((data) => {
+            res.status(200).json(data);
+        })
+        .catch((error) => {
+            res.status(500).json({ message: error });
+        });
+});
+
+// Using Async-Await with Axios (Example: Simulating API call)
+public_users.get('/books-async', async (req, res) => {
+    try {
+        // Simulate an external API call by using the local `/` route
+        const response = await axios.get('http://localhost:5000/');
+        res.status(200).json(JSON.parse(response.data)); // Parse JSON if returned as string
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching books: " + error.message });
+    }
+});
+
+// Using Async-Await with Local Data
+public_users.get('/books-async-local', async (req, res) => {
+    try {
+        // Simulate an async call to fetch local books
+        const bookList = await fetchBooks();
+        res.status(200).json(bookList);
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching books: " + error });
     }
 });
 
