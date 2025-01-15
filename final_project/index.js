@@ -9,32 +9,34 @@ const app = express();
 // Middleware to parse JSON request bodies
 app.use(express.json());
 
-// Session middleware configuration
 app.use("/customer", session({
     secret: "fingerprint_customer", // Secret key for signing session cookies
-    resave: true,
-    saveUninitialized: true
+    resave: false, // Prevent unnecessary session saving if no changes are made
+    saveUninitialized: false, // Do not save uninitialized sessions to reduce storage overhead
+    cookie: {
+        secure: false, // Set `true` if using HTTPS
+        httpOnly: true, // Prevent client-side JavaScript from accessing the session cookie
+        maxAge: 3600000 // Set cookie expiration time (1 hour in milliseconds)
+    }
 }));
 
 // Authentication middleware for "/customer/auth/*" routes
 app.use("/customer/auth/*", function auth(req, res, next) {
-    // Retrieve the token from the session
-    const token = req.session.token;
+    // Retrieve token from session or Authorization header
+    const token = req.session.token || req.headers.authorization?.split(" ")[1];
 
     if (!token) {
-        // If no token exists in the session, return unauthorized
         return res.status(401).json({ message: "Unauthorized: No token provided" });
     }
 
     // Verify the token
     jwt.verify(token, "fingerprint_customer", (err, decoded) => {
         if (err) {
-            // If the token is invalid or expired, return forbidden
             return res.status(403).json({ message: "Forbidden: Invalid or expired token" });
         }
 
         // Token is valid; attach user info to the request object
-        req.user = decoded; // Example: decoded token may contain { username, role, etc. }
+        req.user = decoded;
         next(); // Pass control to the next middleware or route handler
     });
 });

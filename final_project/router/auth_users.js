@@ -78,12 +78,14 @@ regd_users.put("/auth/review/:isbn", (req, res) => {
         return res.status(404).json({ message: "Book not found." });
     }
 
-    // Verify user authentication
-    const token = req.session.token;
+    // Retrieve token from session or Authorization header
+    const token = req.session.token || req.headers.authorization?.split(" ")[1];
+
     if (!token) {
-        return res.status(401).json({ message: "Unauthorized: No session token found." });
+        return res.status(401).json({ message: "Unauthorized: No token provided." });
     }
 
+    // Verify the token
     jwt.verify(token, "fingerprint_customer", (err, decoded) => {
         if (err) {
             return res.status(403).json({ message: "Invalid or expired token." });
