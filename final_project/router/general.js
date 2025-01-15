@@ -135,4 +135,63 @@ public_users.get('/books-async-local', async (req, res) => {
     }
 });
 
+// Using Promise Callbacks to fetch book details by ISBN
+public_users.get('/isbn-promise/:isbn', (req, res) => {
+    const { isbn } = req.params;
+
+    const fetchBookByISBN = (isbn) => {
+        return new Promise((resolve, reject) => {
+            const book = books[isbn];
+            if (book) {
+                resolve(book);
+            } else {
+                reject("Book not found");
+            }
+        });
+    };
+
+    fetchBookByISBN(isbn)
+        .then((book) => {
+            res.status(200).json(book);
+        })
+        .catch((error) => {
+            res.status(404).json({ message: error });
+        });
+});
+
+// Using Async-Await with Axios to fetch book details by ISBN
+public_users.get('/isbn-async/:isbn', async (req, res) => {
+    const { isbn } = req.params;
+
+    try {
+        const response = await axios.get(`https://example.com/api/books/${isbn}`);
+        res.status(200).json(response.data);
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching book details: " + error.message });
+    }
+});
+
+// Using Async-Await with Local Data to fetch book details by ISBN
+public_users.get('/isbn-async-local/:isbn', async (req, res) => {
+    const { isbn } = req.params;
+
+    const fetchBookByISBN = (isbn) => {
+        return new Promise((resolve, reject) => {
+            const book = books[isbn];
+            if (book) {
+                resolve(book);
+            } else {
+                reject("Book not found");
+            }
+        });
+    };
+
+    try {
+        const book = await fetchBookByISBN(isbn);
+        res.status(200).json(book);
+    } catch (error) {
+        res.status(404).json({ message: error });
+    }
+});
+
 module.exports.general = public_users;
