@@ -193,4 +193,77 @@ public_users.get('/author-async-local/:author', async (req, res) => {
   }
 });
 
+// Using Promise Callbacks to fetch book details by Title
+public_users.get('/title-promise/:title', (req, res) => {
+  const { title } = req.params;
+
+  const fetchBooksByTitle = (title) => {
+    return new Promise((resolve, reject) => {
+      const matchedBooks = [];
+
+      for (const key in books) {
+        if (books[key].title.toLowerCase() === title.toLowerCase()) {
+          matchedBooks.push(books[key]);
+        }
+      }
+
+      if (matchedBooks.length > 0) {
+        resolve(matchedBooks);
+      } else {
+        reject("No books found for the given title");
+      }
+    });
+  };
+
+  fetchBooksByTitle(title)
+    .then((matchedBooks) => {
+      res.status(200).json(matchedBooks);
+    })
+    .catch((error) => {
+      res.status(404).json({ message: error });
+    });
+});
+
+// Using Async-Await with Axios to fetch book details by Title
+public_users.get('/title-async/:title', async (req, res) => {
+  const { title } = req.params;
+
+  try {
+    const response = await axios.get(`https://example.com/api/books?title=${title}`); // Replace with real endpoint
+    res.status(200).json(response.data);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching books by title: " + error.message });
+  }
+});
+
+// Using Async-Await with Local Data to fetch book details by Title
+public_users.get('/title-async-local/:title', async (req, res) => {
+  const { title } = req.params;
+
+  const fetchBooksByTitle = (title) => {
+    return new Promise((resolve, reject) => {
+      const matchedBooks = [];
+
+      for (const key in books) {
+        if (books[key].title.toLowerCase() === title.toLowerCase()) {
+          matchedBooks.push(books[key]);
+        }
+      }
+
+      if (matchedBooks.length > 0) {
+        resolve(matchedBooks);
+      } else {
+        reject("No books found for the given title");
+      }
+    });
+  };
+
+  try {
+    const matchedBooks = await fetchBooksByTitle(title);
+    res.status(200).json(matchedBooks);
+  } catch (error) {
+    res.status(404).json({ message: error });
+  }
+});
+
 module.exports.general = public_users;
